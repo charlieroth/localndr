@@ -1,6 +1,6 @@
 # `localndr`
 
-An experiment in building a local-first calendar
+Experimental local-first calendar
 
 ## Technical Stack
 
