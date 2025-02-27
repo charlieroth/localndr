@@ -11,6 +11,6 @@ Experimental local-first calendar
 - [shadcn](https://ui.shadcn.com/)
 - [Electric SQL](https://electric-sql.com/)
 
-## Current UI
+## Current State
 
-![Current UI](./images/screenshot.png)
+![Application Screenshot](./images/screenshot.png)
