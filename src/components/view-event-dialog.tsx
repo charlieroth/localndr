@@ -23,10 +23,10 @@ import { Textarea } from '@/components/ui/textarea'
 import type { TimeFormat, Event } from '@/types'
 
 interface ViewEventDialogProps {
-  event: Event | null
+  event: Event
   open: boolean
   onOpenChange: (open: boolean) => void
-  onUpdateEvent: (updatedEvent: Event) => void
+  onUpdateEvent: (updatedEvent: Event) => Promise<void>
   timeFormat: TimeFormat
 }
 
@@ -38,36 +38,78 @@ export function ViewEventDialog({
   timeFormat,
 }: ViewEventDialogProps) {
   const [isEditing, setIsEditing] = useState(false)
-  const [editedEvent, setEditedEvent] = useState<Event | null>(null)
+  const [editedEvent, setEditedEvent] = useState<Event>(event)
 
-  // Reset state when dialog opens/closes or event changes
-  if (event && (!editedEvent || editedEvent.id !== event.id)) {
-    setEditedEvent(event)
+  const onTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setEditedEvent({
+      ...editedEvent,
+      title: e.target.value,
+    })
   }
 
-  if (!event || !editedEvent) return null
+  const onDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setEditedEvent({
+      ...editedEvent,
+      description: e.target.value,
+    })
+  }
 
-  const handleSave = () => {
-    onUpdateEvent(editedEvent)
-    setIsEditing(false)
+  const onCalendarSelect = (date: Date | undefined) => {
+    if (date) {
+      const newStart = new Date(date)
+      newStart.setHours(
+        editedEvent.start_date.getHours(),
+        editedEvent.start_date.getMinutes()
+      )
+      const newEnd = new Date(date)
+      newEnd.setHours(
+        editedEvent.end_date.getHours(),
+        editedEvent.end_date.getMinutes()
+      )
+      setEditedEvent({
+        ...editedEvent,
+        start_date: newStart,
+        end_date: newEnd,
+      })
+    }
+  }
+  
+  const handleStartTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const [hours, minutes] = e.target.value.split(':').map(Number)
+    const newStart = new Date(editedEvent.start_date)
+    newStart.setHours(hours, minutes)
+    setEditedEvent({
+      ...editedEvent,
+      start_date: newStart,
+    })
+  }
+
+  const handleEndTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const [hours, minutes] = e.target.value.split(':').map(Number)
+    const newEnd = new Date(editedEvent.end_date)
+    newEnd.setHours(hours, minutes)
+    setEditedEvent({
+      ...editedEvent,
+      end_date: newEnd,
+    })
+  }
+
+  const handleSave = async () => {
+    try {
+      const now = new Date()
+      await onUpdateEvent({
+        ...editedEvent,
+        modified: now,
+      })
+      setIsEditing(false)
+    } catch (error) {
+      console.error('view-event-dialog: Error saving event', error)
+    }
   }
 
   const handleCancel = () => {
     setEditedEvent(event) // Reset to original event data
     setIsEditing(false)
-  }
-
-  const handleTimeChange = (type: 'start' | 'end', timeString: string) => {
-    const [hours, minutes] = timeString.split(':').map(Number)
-    const newDate = new Date(
-      type === 'start' ? editedEvent.start_date : editedEvent.end_date
-    )
-    newDate.setHours(hours, minutes)
-
-    setEditedEvent({
-      ...editedEvent,
-      [type === 'start' ? 'start_date' : 'end_date']: newDate,
-    })
   }
 
   const timeFormatString = timeFormat === '12h' ? 'h:mm a' : 'HH:mm'
@@ -98,12 +140,7 @@ export function ViewEventDialog({
                 <Input
                   id="title"
                   value={editedEvent.title}
-                  onChange={(e) =>
-                    setEditedEvent({
-                      ...editedEvent,
-                      title: e.target.value,
-                    })
-                  }
+                  onChange={onTitleChange}
                   placeholder="Event title"
                 />
               </div>
@@ -112,12 +149,7 @@ export function ViewEventDialog({
                 <Textarea
                   id="description"
                   value={editedEvent.description}
-                  onChange={(e) =>
-                    setEditedEvent({
-                      ...editedEvent,
-                      description: e.target.value,
-                    })
-                  }
+                  onChange={onDescriptionChange}
                   placeholder="Event description"
                 />
               </div>
@@ -138,25 +170,7 @@ export function ViewEventDialog({
                         className="rounded-md border"
                         mode="single"
                         selected={editedEvent.start_date}
-                        onSelect={(date) => {
-                          if (date) {
-                            const newStart = new Date(date)
-                            newStart.setHours(
-                              editedEvent.start_date.getHours(),
-                              editedEvent.start_date.getMinutes()
-                            )
-                            const newEnd = new Date(date)
-                            newEnd.setHours(
-                              editedEvent.end_date.getHours(),
-                              editedEvent.end_date.getMinutes()
-                            )
-                            setEditedEvent({
-                              ...editedEvent,
-                              start_date: newStart,
-                              end_date: newEnd,
-                            })
-                          }
-                        }}
+                        onSelect={onCalendarSelect}
                         initialFocus
                       />
                     </PopoverContent>
@@ -169,9 +183,7 @@ export function ViewEventDialog({
                       id="startTime"
                       type="time"
                       value={format(editedEvent.start_date, 'HH:mm')}
-                      onChange={(e) =>
-                        handleTimeChange('start', e.target.value)
-                      }
+                      onChange={handleStartTimeChange}
                     />
                   </div>
                   <div className="grid gap-2">
@@ -180,7 +192,7 @@ export function ViewEventDialog({
                       id="endTime"
                       type="time"
                       value={format(editedEvent.end_date, 'HH:mm')}
-                      onChange={(e) => handleTimeChange('end', e.target.value)}
+                      onChange={handleEndTimeChange}
                     />
                   </div>
                 </div>

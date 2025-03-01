@@ -48,8 +48,21 @@ export default function Calendar() {
     }
   }
 
-  const updateEvent = (updatedEvent: Event) => {
-    console.log('updateEvent', updatedEvent)
+  const updateEvent = async (updatedEvent: Event) => {
+    try {
+      await db.query(`
+        UPDATE event 
+        SET 
+          title = '${updatedEvent.title}',
+          description = '${updatedEvent.description}',
+          start_date = '${updatedEvent.start_date.toISOString()}',
+          end_date = '${updatedEvent.end_date.toISOString()}',
+          modified = '${updatedEvent.modified.toISOString()}'
+        WHERE id = '${updatedEvent.id}'
+      `)
+    } catch (error) {
+      console.error('calendar: Error updating event', error)
+    }
   }
 
   const calendarEvents: Event[] = useMemo(() => {
