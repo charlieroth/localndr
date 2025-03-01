@@ -34,9 +34,7 @@ async function applyTableChanges(tableName: 'event', change: EventChange, sql: p
     new: isNew,
     deleted
   } = change
-  console.log('modified_columns_raw: ', modified_columns_raw)
   const modified_columns = modified_columns_raw as (keyof typeof change)[]
-  console.log('modified_columns: ', modified_columns)
 
   if (deleted) {
     await sql`
