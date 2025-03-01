@@ -53,8 +53,8 @@ function generateStandupEvent(date) {
     id: eventId,
     title: "Daily Standup",
     description: "Daily team sync to discuss progress, blockers, and plans for the day.",
-    start: start.toISOString(),
-    end: end.toISOString(),
+    start_date: start.toISOString(),
+    end_date: end.toISOString(),
     created: createdAt.toISOString(),
     modified: createdAt.toISOString(),
   }
@@ -76,8 +76,8 @@ function generateMorningDeepWorkEvent(date) {
     id: eventId,
     title: "Morning Deep Work",
     description: "Focused coding session. No interruptions.",
-    start: start.toISOString(),
-    end: end.toISOString(),
+    start_date: start.toISOString(),
+    end_date: end.toISOString(),
     created: createdAt.toISOString(),
     modified: createdAt.toISOString(),
   }
@@ -99,8 +99,8 @@ function generateAfternoonDeepWorkEvent(date) {
     id: eventId,
     title: "Afternoon Deep Work",
     description: "Focused coding session. No interruptions.",
-    start: start.toISOString(),
-    end: end.toISOString(),
+    start_date: start.toISOString(),
+    end_date: end.toISOString(),
     created: createdAt.toISOString(),
     modified: createdAt.toISOString(),
   }

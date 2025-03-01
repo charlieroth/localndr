@@ -25,7 +25,7 @@ export function CalendarEvent({
 }: CalendarEventProps) {
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false)
   const now = new Date()
-  const isCurrentEvent = now >= event.start && now <= event.end
+  const isCurrentEvent = now >= event.start_date && now <= event.end_date
 
   const timeFormatString = timeFormat === '12h' ? 'h:mm a' : 'HH:mm'
 
@@ -33,7 +33,7 @@ export function CalendarEvent({
     <>
       <Card
         className={`overflow-hidden transition-colors cursor-pointer hover:bg-accent ${
-          event.end < now ? 'opacity-50 hover:opacity-75 bg-muted' : ''
+          event.end_date < now ? 'opacity-50 hover:opacity-75 bg-muted' : ''
         } ${isCurrentEvent ? 'border-2 border-primary' : ''}`}
         onClick={() => setIsViewDialogOpen(true)}
       >
@@ -41,8 +41,8 @@ export function CalendarEvent({
           <CardTitle className="text-base">{event.title}</CardTitle>
           <CardDescription className="flex items-center gap-1 text-xs">
             <Clock className="size-3" />
-            {format(event.start, timeFormatString)} -{' '}
-            {format(event.end, timeFormatString)}
+            {format(event.start_date, timeFormatString)} -{' '}
+            {format(event.end_date, timeFormatString)}
           </CardDescription>
         </CardHeader>
         <CardContent className="text-sm">{event.description}</CardContent>

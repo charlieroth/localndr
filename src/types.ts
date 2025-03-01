@@ -4,8 +4,8 @@ export type DBEvent = {
   id: string
   title: string
   description: string
-  start: string
-  end: string
+  start_date: string
+  end_date: string
   created: string
   modified: string
 }
@@ -14,8 +14,8 @@ export type Event = {
   id: string
   title: string
   description: string
-  start: Date
-  end: Date
+  start_date: Date
+  end_date: Date
   created: Date
   modified: Date
 }

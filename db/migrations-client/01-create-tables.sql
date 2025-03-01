@@ -2,8 +2,8 @@ CREATE TABLE IF NOT EXISTS "event" (
   "id" UUID NOT NULL,
   "title" TEXT NOT NULL,
   "description" TEXT NOT NULL,
-  "start" TIMESTAMPTZ NOT NULL,
-  "end" TIMESTAMPTZ NOT NULL,
+  "start_date" TIMESTAMPTZ NOT NULL,
+  "end_date" TIMESTAMPTZ NOT NULL,
   "created" TIMESTAMPTZ DEFAULT NOW(),
   "modified" TIMESTAMPTZ DEFAULT NOW(),
   "deleted" BOOLEAN NOT NULL DEFAULT FALSE, -- soft delete for local deletions
@@ -65,6 +65,7 @@ EXECUTE FUNCTION handle_delete();
 -- - During sync insert rows and set modified_columns = []
 -- - Otherwise insert rows and set modified_columns to contain the names of all 
 --   columns that are not local-state related
+
 CREATE OR REPLACE FUNCTION handle_insert()
 RETURNS TRIGGER AS $$
 DECLARE

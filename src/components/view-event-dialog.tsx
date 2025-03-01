@@ -7,6 +7,7 @@ import { Calendar } from '@/components/ui/calendar'
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -59,13 +60,13 @@ export function ViewEventDialog({
   const handleTimeChange = (type: 'start' | 'end', timeString: string) => {
     const [hours, minutes] = timeString.split(':').map(Number)
     const newDate = new Date(
-      type === 'start' ? editedEvent.start : editedEvent.end
+      type === 'start' ? editedEvent.start_date : editedEvent.end_date
     )
     newDate.setHours(hours, minutes)
 
     setEditedEvent({
       ...editedEvent,
-      [type === 'start' ? 'start' : 'end']: newDate,
+      [type === 'start' ? 'start_date' : 'end_date']: newDate,
     })
   }
 
@@ -86,6 +87,7 @@ export function ViewEventDialog({
             </Button>
           )}
           <DialogTitle>{isEditing ? 'Edit' : event.title}</DialogTitle>
+          <DialogDescription />
         </DialogHeader>
         <div className="grid gap-4 py-4">
           {isEditing ? (
@@ -128,30 +130,30 @@ export function ViewEventDialog({
                         variant="outline"
                         className="w-full justify-start text-left font-normal"
                       >
-                        {format(editedEvent.start, 'PPP')}
+                        {format(editedEvent.start_date, 'PPP')}
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0" align="start">
                       <Calendar
                         className="rounded-md border"
                         mode="single"
-                        selected={editedEvent.start}
+                        selected={editedEvent.start_date}
                         onSelect={(date) => {
                           if (date) {
                             const newStart = new Date(date)
                             newStart.setHours(
-                              editedEvent.start.getHours(),
-                              editedEvent.start.getMinutes()
+                              editedEvent.start_date.getHours(),
+                              editedEvent.start_date.getMinutes()
                             )
                             const newEnd = new Date(date)
                             newEnd.setHours(
-                              editedEvent.end.getHours(),
-                              editedEvent.end.getMinutes()
+                              editedEvent.end_date.getHours(),
+                              editedEvent.end_date.getMinutes()
                             )
                             setEditedEvent({
                               ...editedEvent,
-                              start: newStart,
-                              end: newEnd,
+                              start_date: newStart,
+                              end_date: newEnd,
                             })
                           }
                         }}
@@ -166,7 +168,7 @@ export function ViewEventDialog({
                     <Input
                       id="startTime"
                       type="time"
-                      value={format(editedEvent.start, 'HH:mm')}
+                      value={format(editedEvent.start_date, 'HH:mm')}
                       onChange={(e) =>
                         handleTimeChange('start', e.target.value)
                       }
@@ -177,7 +179,7 @@ export function ViewEventDialog({
                     <Input
                       id="endTime"
                       type="time"
-                      value={format(editedEvent.end, 'HH:mm')}
+                      value={format(editedEvent.end_date, 'HH:mm')}
                       onChange={(e) => handleTimeChange('end', e.target.value)}
                     />
                   </div>
@@ -199,7 +201,7 @@ export function ViewEventDialog({
                   <Label>Date</Label>
                   <div className="flex items-center gap-2 text-sm">
                     <CalendarIcon className="size-4" />
-                    {format(event.start, 'PPPP')}
+                    {format(event.start_date, 'PPPP')}
                   </div>
                 </div>
 
@@ -207,8 +209,8 @@ export function ViewEventDialog({
                   <Label>Time</Label>
                   <div className="flex items-center gap-2 text-sm">
                     <Clock className="size-4" />
-                    {format(event.start, timeFormatString)} -{' '}
-                    {format(event.end, timeFormatString)}
+                    {format(event.start_date, timeFormatString)} -{' '}
+                    {format(event.end_date, timeFormatString)}
                   </div>
                 </div>
               </div>

@@ -49,7 +49,7 @@ export function DayRow({
               [...events]
                 .sort(
                   (a, b) =>
-                    a.start.getTime() - b.start.getTime()
+                    a.start_date.getTime() - b.start_date.getTime()
                 )
                 .map((event) => (
                   <CalendarEvent

@@ -13,10 +13,11 @@ import { useLoaderData } from 'react-router'
 import { LiveQuery } from '@electric-sql/pglite/live'
 import { Header } from '@/components/header'
 import SettingsDialog from '@/components/settings-dialog'
+import { usePGlite } from '@electric-sql/pglite-react'
 
 export default function Calendar() {
   const { liveEvents } = useLoaderData() as { liveEvents: LiveQuery<DBEvent> }
-
+  const db = usePGlite()
   const [currentDate, setCurrentDate] = useState(new Date())
   const [isAddEventOpen, setIsAddEventOpen] = useState(false)
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
@@ -28,18 +29,27 @@ export default function Calendar() {
     end: endOfMonth(currentDate),
   })
 
-  const addEvent = (newEvent: Omit<Event, 'id'>) => {
-    console.log('addEvent', newEvent)
-    // setEvents([...events, { ...newEvent, id: events.length + 1 }])
+  const addEvent = async (newEvent: Event): Promise<void> => {
+    try {
+      await db.query(`
+        INSERT INTO event (id, title, description, start_date, end_date, created, modified)
+        VALUES (
+          '${newEvent.id}',
+          '${newEvent.title}',
+          '${newEvent.description}',
+          '${newEvent.start_date.toISOString()}',
+          '${newEvent.end_date.toISOString()}',
+          '${newEvent.created.toISOString()}',
+          '${newEvent.modified.toISOString()}'
+        );
+      `)
+    } catch (error) {
+      console.error('calendar: Error adding event', error)
+    }
   }
 
   const updateEvent = (updatedEvent: Event) => {
     console.log('updateEvent', updatedEvent)
-    // setEvents(
-    //   events.map((event) =>
-    //     event.id === updatedEvent.id ? updatedEvent : event
-    //   )
-    // )
   }
 
   const calendarEvents: Event[] = useMemo(() => {
@@ -49,8 +59,8 @@ export default function Calendar() {
       id: event.id,
       title: event.title,
       description: event.description,
-      start: new Date(event.start),
-      end: new Date(event.end),
+      start_date: new Date(event.start_date),
+      end_date: new Date(event.end_date),
       created: new Date(event.created),
       modified: new Date(event.modified),
     }))

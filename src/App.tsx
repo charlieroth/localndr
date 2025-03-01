@@ -41,13 +41,18 @@ async function eventsLoader({
 }: {
   request: Request
 }) {
-  await waitForInitialSyncDone()
-  const pg = await pgPromise
-  const liveEvents = await pg.live.query<DBEvent>({
-    query: `SELECT * FROM event`,
-    signal: request.signal,
-  })
-  return { liveEvents }
+  try {
+    await waitForInitialSyncDone()
+    const pg = await pgPromise
+    const liveEvents = await pg.live.query<DBEvent>({
+      query: `SELECT id, title, description, start_date, end_date, created, modified FROM event`,
+      signal: request.signal,
+    })
+    return { liveEvents }
+  } catch (error) {
+    console.error('app: Error loading events', error)
+    return { liveEvents: [] }
+  }
 }
 
 const router = createBrowserRouter([

@@ -22,10 +22,11 @@ import {
 import { Textarea } from '@/components/ui/textarea'
 import type { TimeFormat, Event } from '@/types'
 import { v4 as uuidV4 } from 'uuid'
+import { DialogDescription } from '@radix-ui/react-dialog'
 interface AddEventDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  onAddEvent: (event: Omit<Event, 'id'>) => void
+  onAddEvent: (event: Event) => Promise<void>
   currentDate: Date
   timeFormat: TimeFormat
 }
@@ -42,37 +43,42 @@ export function AddEventDialog({
   const [startTime, setStartTime] = useState('09:00')
   const [endTime, setEndTime] = useState('10:00')
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleSubmit = async (e: React.FormEvent) => {
+    try {
+      e.preventDefault()
 
-    // Create date objects for start and end times
-    const [startHours, startMinutes] = startTime.split(':').map(Number)
-    const [endHours, endMinutes] = endTime.split(':').map(Number)
+      // Create date objects for start and end times
+      const [startHours, startMinutes] = startTime.split(':').map(Number)
+      const [endHours, endMinutes] = endTime.split(':').map(Number)
 
-    const startDateTime = new Date(selectedDate)
-    startDateTime.setHours(startHours, startMinutes)
+      const startDateTime = new Date(selectedDate)
+      startDateTime.setHours(startHours, startMinutes)
 
-    const endDateTime = new Date(selectedDate)
-    endDateTime.setHours(endHours, endMinutes)
+      const endDateTime = new Date(selectedDate)
+      endDateTime.setHours(endHours, endMinutes)
 
-    const newEvent: Event = {
-      id: uuidV4(),
-      title,
-      description,
-      start: startDateTime,
-      end: endDateTime,
-      created: new Date(),
-      modified: new Date(),
+      const now = new Date()
+      const newEvent: Event = {
+        id: uuidV4(),
+        title,
+        description,
+        start_date: startDateTime,
+        end_date: endDateTime,
+        created: now,
+        modified: now,
+      }
+
+      await onAddEvent(newEvent)
+      onOpenChange(false)
+
+      // Reset form
+      setTitle('')
+      setDescription('')
+      setStartTime('09:00')
+      setEndTime('10:00')
+    } catch (error) {
+      console.error('add-event-dialog: Error adding event', error)
     }
-
-    onAddEvent(newEvent)
-    onOpenChange(false)
-
-    // Reset form
-    setTitle('')
-    setDescription('')
-    setStartTime('09:00')
-    setEndTime('10:00')
   }
 
   return (
@@ -81,6 +87,7 @@ export function AddEventDialog({
         <form onSubmit={handleSubmit}>
           <DialogHeader>
             <DialogTitle>Add Event</DialogTitle>
+            <DialogDescription />
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">

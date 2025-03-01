@@ -24,7 +24,7 @@ export function DaysList({
       <div className="flex flex-col gap-6 p-4 md:px-12 lg:px-24 md:max-w-4xl lg:max-w-6xl md:mx-auto">
         {days.map((day) => {
           const dayEvents = events.filter((event) =>
-            isSameDay(event.start, day)
+            isSameDay(event.start_date, day)
           )
           const isToday = isSameDay(day, today)
           return (

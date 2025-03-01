@@ -113,10 +113,13 @@ async function doSyncToServer(pg: PGliteWithExtensions) {
           id,
           title,
           description,
-          start,
-          end,
+          start_date,
+          end_date,
           created,
-          modified
+          modified,
+          modified_columns,
+          new,
+          deleted
       FROM event
       WHERE synced = false AND sent_to_server = false
     `)
