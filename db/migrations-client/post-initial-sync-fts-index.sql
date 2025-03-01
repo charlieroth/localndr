@@ -1,0 +1,1 @@
+CREATE INDEX IF NOT EXISTS "event_search_idx" ON "event" USING GIN ((setweight(to_tsvector('simple', coalesce(title, '')), 'A') || setweight(to_tsvector('simple', coalesce(description, '')), 'B')));

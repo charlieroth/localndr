@@ -4,20 +4,15 @@
 --
 
 
--- EXTENSIONS 
-
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA public;
-
 -- TABLES 
 
 CREATE TABLE events (
- calendar_id uuid ,
  created_at timestamp with time zone ,
  description text ,
  end_date timestamp with time zone  NOT NULL,
  id uuid  NOT NULL,
  start_date timestamp with time zone  NOT NULL,
- title character varying (255) NOT NULL,
+ title text  NOT NULL,
  updated_at timestamp with time zone 
 );
 
@@ -34,8 +29,6 @@ ALTER TABLE schema_migrations ADD CONSTRAINT schema_migrations_pkey PRIMARY KEY 
 -- INDEXES 
 
 CREATE UNIQUE INDEX events_pkey ON public.events USING btree (id)
-
-CREATE INDEX idx_events_calendar ON public.events USING btree (calendar_id)
 
 CREATE INDEX idx_events_dates ON public.events USING btree (start_date, end_date)
 
