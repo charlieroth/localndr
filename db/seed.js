@@ -22,7 +22,7 @@ async function batchInsert(sql, table, columns, dataArray, batchSize = 90) {
       INSERT INTO ${sql(table)} ${sql(batch, columns)}
     `
 
-    process.stdout.write(`Loaded ${Math.min(i + batchSize, dataArray.length)} of ${dataArray.lenght} ${table}s\r`)
+    process.stdout.write(`Loaded ${Math.min(i + batchSize, dataArray.length)} of ${dataArray.length} ${table}s\r`)
   }
 }
 
