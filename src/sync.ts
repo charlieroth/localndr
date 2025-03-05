@@ -3,14 +3,12 @@ import type { PGliteWithLive } from '@electric-sql/pglite/live'
 import type { PGliteWithSync } from '@electric-sql/pglite-sync'
 import type { EventChange, ChangeSet } from './utils/changes.ts'
 import { postInitialSync } from './migrations.ts'
-import { useState } from 'react'
-import { useEffect } from 'react'
+import { useDatabaseStore, SyncStatus } from './stores/databaseStore'
 
 const WRITE_SERVER_URL = import.meta.env.VITE_WRITE_SERVER_URL ?? 'http://localhost:3001'
 const ELECTRIC_API_URL = import.meta.env.VITE_ELECTRIC_API_URL ?? 'http://localhost:3000'
 const APPLY_CHANGES_URL = `${WRITE_SERVER_URL}/apply-changes`
 
-type SyncStatus = 'initial-sync' | 'done'
 type PGliteWithExtensions = PGliteWithLive & PGliteWithSync
 
 export async function startSync(pg: PGliteWithExtensions) {
@@ -19,15 +17,20 @@ export async function startSync(pg: PGliteWithExtensions) {
 }
 
 async function startSyncToDatabase(pg: PGliteWithExtensions) {
+  // Get store access outside of React component
+  const store = useDatabaseStore.getState()
+  const setStatus = (status: SyncStatus, message: string) => {
+    store.setSyncStatus(status, message)
+  }
+
   const events = await pg.query(`SELECT 1 FROM event LIMIT 1`)
   const hasEventsAtStart = events.rows.length > 0
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  let eventShapeInitialSyncDone = false
+  // We're tracking the sync state of both the shape data and post-initial sync operations
   let postInitialSyncDone = false
 
   if (!hasEventsAtStart) {
-    updateSyncStatus('initial-sync', 'Downloading shape data...')
+    setStatus('syncing', 'Downloading shape data...')
   }
 
   let postInitialSyncDoneResolver: () => void
@@ -38,7 +41,7 @@ async function startSyncToDatabase(pg: PGliteWithExtensions) {
   const doPostInitialSync = async () => {
     if (!hasEventsAtStart && !postInitialSyncDone) {
       postInitialSyncDone = true
-      updateSyncStatus('initial-sync', 'Creating indexes...')
+      setStatus('syncing', 'Creating indexes...')
       await postInitialSync(pg)
       postInitialSyncDoneResolver()
     }
@@ -58,7 +61,6 @@ async function startSyncToDatabase(pg: PGliteWithExtensions) {
     commitGranularity: 'up-to-date',
     useCopy: true,
     onInitialSync: async () => {
-      eventShapeInitialSyncDone = true
       await pg.exec(`ALTER TABLE event ENABLE TRIGGER ALL`)
       doPostInitialSync()
     },
@@ -67,19 +69,21 @@ async function startSyncToDatabase(pg: PGliteWithExtensions) {
   eventsSync.subscribe(
     () => {
       if (!hasEventsAtStart && !postInitialSyncDone) {
-        updateSyncStatus('initial-sync', 'Inserting events...')
+        setStatus('syncing', 'Inserting events...')
       }
     },
     (error) => {
       console.error('eventsSync error: ', error)
+      setStatus('error', `Sync error: ${error.message || 'Unknown error'}`)
     }
   )
 
   if (!hasEventsAtStart) {
     await postInitialSyncDonePromise
-    await pg.query(`SELECT 1;`) // esnure PGlite is idle
+    await pg.query(`SELECT 1;`) // ensure PGlite is idle
   }
-  updateSyncStatus('done')
+  
+  setStatus('ready', 'Database ready')
 }
 
 const syncMutex = new Mutex()
@@ -157,78 +161,6 @@ async function doSyncToServer(pg: PGliteWithExtensions) {
         `,
         [event.id, event.modified]
       )
-    }
-  })
-}
-
-export function updateSyncStatus(newStatus: SyncStatus, message?: string) {
-  localStorage.setItem('syncStatus', JSON.stringify([newStatus, message]))
-  window.dispatchEvent(
-    new StorageEvent('storage', {
-      key: 'syncStatus',
-      newValue: JSON.stringify([newStatus, message]),
-    })
-  )
-}
-
-export function useSyncStatus() {
-  const [syncStatus, setSyncStatus] = useState<[SyncStatus, string]>(() => {
-    const currentSyncStatusJson = localStorage.getItem('syncStatus')
-    const currentSyncStatus: [SyncStatus, string] = currentSyncStatusJson
-      ? JSON.parse(currentSyncStatusJson)
-      : ['initial-sync', 'Starting sync...']
-    return currentSyncStatus
-  })
-
-  useEffect(() => {
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'syncStatus' && e.newValue) {
-        const [newStatus, message] = JSON.parse(e.newValue)
-        setSyncStatus([newStatus, message])
-      }
-    }
-
-    window.addEventListener('storage', handleStorageChange)
-
-    return () => {
-      window.removeEventListener('storage', handleStorageChange)
-    }
-  }, [])
-
-  return syncStatus
-}
-
-
-let initialSyncDone = false
-
-export function waitForInitialSyncDone() {
-  return new Promise<void>((resolve) => {
-    if (initialSyncDone) {
-      resolve()
-      return
-    }
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'syncStatus' && e.newValue) {
-        const [newStatus] = JSON.parse(e.newValue)
-        if (newStatus === 'done') {
-          window.removeEventListener('storage', handleStorageChange)
-          initialSyncDone = true
-          resolve()
-        }
-      }
-    }
-
-    // Check current status first
-    const currentSyncStatusJson = localStorage.getItem('syncStatus')
-    const [currentStatus] = currentSyncStatusJson
-      ? JSON.parse(currentSyncStatusJson)
-      : ['initial-sync']
-
-    if (currentStatus === 'done') {
-      initialSyncDone = true
-      resolve()
-    } else {
-      window.addEventListener('storage', handleStorageChange)
     }
   })
 }

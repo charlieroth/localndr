@@ -9,7 +9,7 @@
         "db:migrate": "dotenv -e .env.dev -- pnpm exec pg-migrations apply --directory ./db/migrations-server",
         "db:seed": "dotenv -e .env.dev -- node ./db/seed.js",
         "reset": "pnpm backend:down && pnpm backend:up && pnpm db:migrate && pnpm db:seed",
-        "write-server": "dotenv -e .env.dev -- tsx server.ts",
+        "write-server": "dotenv -e .env.dev -- tsx write-server.ts",
         "dev": "vite",
         "build": "vite build",
         "preview": "vite preview",
@@ -45,12 +45,14 @@
         "react": "^19.0.0",
         "react-day-picker": "8.10.1",
         "react-dom": "^19.0.0",
+        "react-hook-form": "^7.54.2",
         "react-router": "^7.2.0",
         "tailwind-merge": "^3.0.2",
         "tailwindcss": "^4.0.9",
         "tailwindcss-animate": "^1.0.7",
         "uuid": "^11.1.0",
-        "zod": "^3.24.2"
+        "zod": "^3.24.2",
+        "zustand": "^5.0.3"
     },
     "devDependencies": {
         "@databases/pg-migrations": "^5.0.3",

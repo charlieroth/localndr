@@ -2,6 +2,19 @@
 
 Experimental local-first calendar
 
+## Roadmap
+
+- [ ] Pages
+  - [ ] Day
+  - [ ] Individual Event
+  - [ ] Week
+  - [ ] Month
+- [ ] CRUD calendar events
+- [ ] Export Single Calendar to ICS file
+- [ ] Import single calendar from ICS file
+- [ ] Multiple calendar support
+- [ ] Export one or more calendars to ICS file
+
 ## Technical Stack
 
 - [TypeScript](https://www.typescriptlang.org/)

@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { format } from 'date-fns'
 import { Clock } from 'lucide-react'
 
@@ -9,7 +8,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import { ViewEventDialog } from '@/components/view-event-dialog'
 import type { TimeFormat, Event } from '@/types'
 
 interface CalendarEventProps {
@@ -20,10 +18,8 @@ interface CalendarEventProps {
 
 export function CalendarEvent({
   event,
-  onUpdateEvent,
   timeFormat,
 }: CalendarEventProps) {
-  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false)
   const now = new Date()
   const isCurrentEvent = now >= event.start_date && now <= event.end_date
 
@@ -35,7 +31,6 @@ export function CalendarEvent({
         className={`overflow-hidden transition-colors cursor-pointer hover:bg-accent ${
           event.end_date < now ? 'opacity-50 hover:opacity-75 bg-muted' : ''
         } ${isCurrentEvent ? 'border-2 border-primary' : ''}`}
-        onClick={() => setIsViewDialogOpen(true)}
       >
         <CardHeader>
           <CardTitle className="text-base">{event.title}</CardTitle>
@@ -47,14 +42,6 @@ export function CalendarEvent({
         </CardHeader>
         <CardContent className="text-sm">{event.description}</CardContent>
       </Card>
-
-      <ViewEventDialog
-        event={event}
-        open={isViewDialogOpen}
-        onOpenChange={setIsViewDialogOpen}
-        onUpdateEvent={onUpdateEvent}
-        timeFormat={timeFormat}
-      />
     </>
   )
 }

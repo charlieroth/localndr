@@ -1,124 +1,65 @@
-import { useEffect, useState } from 'react'
-import { createBrowserRouter, RouterProvider } from 'react-router'
-import { PGliteWorker } from '@electric-sql/pglite/worker'
-import { live, LiveNamespace } from '@electric-sql/pglite/live'
-import { electricSync } from '@electric-sql/pglite-sync'
+import { useEffect } from 'react'
+import { BrowserRouter, Route, Routes } from 'react-router'
 import { PGliteProvider } from '@electric-sql/pglite-react'
-import PGWorker from './pglite-worker.js?worker'
-import Calendar from './pages/calendar'
-import { startSync, useSyncStatus, waitForInitialSyncDone } from './sync'
-import { Header } from '@/components/header'
-import { DBEvent } from './types'
+import Home from './pages/home'
 import { ThemeProvider } from './components/theme-provider'
-
-type PGliteWorkerWithLive = PGliteWorker & { live: LiveNamespace }
-
-async function createPGlite() {
-  return PGliteWorker.create(new PGWorker(), {
-    extensions: {
-      live,
-      sync: electricSync(),
-    },
-  })
-}
-
-const pgPromise = createPGlite()
-
-let syncStarted = false
-pgPromise.then(async (pg) => {
-  console.log('PGlite worker started')
-  pg.onLeaderChange(() => {
-    console.log('Leader changed', pg.isLeader)
-    if (pg.isLeader && !syncStarted) {
-      syncStarted = true
-      startSync(pg)
-    }
-  })
-})
-
-async function eventsLoader({
-  request,
-}: {
-  request: Request
-}) {
-  try {
-    await waitForInitialSyncDone()
-    const pg = await pgPromise
-    const liveEvents = await pg.live.query<DBEvent>({
-      query: `SELECT id, title, description, start_date, end_date, created, modified FROM event`,
-      signal: request.signal,
-    })
-    return { liveEvents }
-  } catch (error) {
-    console.error('app: Error loading events', error)
-    return { liveEvents: [] }
-  }
-}
-
-const router = createBrowserRouter([
-  {
-    path: '/',
-    index: true,
-    element: <Calendar />,
-    loader: eventsLoader,
-  },
-])
+import Add from './pages/add'
+import Settings from './pages/settings'
+import { useDatabaseStore } from './stores/databaseStore'
 
 export default function App() {
-  const [pgForProvider, setPgForProvider] = useState<PGliteWorkerWithLive | null>(null)
-  const [syncStatus,] = useSyncStatus()
-
+  const { pg, syncStatus, syncMessage, initialize } = useDatabaseStore()
+  
+  // Initialize the database on app start
   useEffect(() => {
-    pgPromise.then(setPgForProvider)
-  }, [])
+    initialize()
+  }, [initialize])
 
-  if (!pgForProvider) {
-    return <NoPGliteView />
+  if (!pg) {
+    return <NoPGliteView message="Initializing PGlite..." />
   }
 
-  if (syncStatus !== 'done') {
-    return <SyncingView />
+  if (syncStatus !== 'ready') {
+    return <SyncingView message={syncMessage} />
   }
 
   return (
     <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-      <PGliteProvider db={pgForProvider}>
-        <RouterProvider router={router} />
+      <PGliteProvider db={pg}>
+        <BrowserRouter>
+          <Routes>
+            <Route index path="/" element={<Home />} />
+            <Route path="/add" element={<Add />} />
+            <Route path="/settings" element={<Settings />} />
+          </Routes>
+        </BrowserRouter>
       </PGliteProvider>
     </ThemeProvider>
   )
 }
 
-const NoPGliteView = () => {
+const NoPGliteView = ({ message }: { message: string }) => {
   return (
     <div className="flex flex-col h-screen bg-background text-foreground">
-      <Header
-        dbConnected={false}
-        isSyncing={false}
-        currentDate={new Date()}
-        handlePreviousMonth={() => {}}
-        handleNextMonth={() => {}}
-        setIsAddEventOpen={() => {}}
-        setIsSettingsOpen={() => {}}
-      />
-      <main className="flex-1" />
+      <main className="flex-1 flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-xl font-semibold mb-2">Database Not Available</h2>
+          <p>{message}</p>
+        </div>
+      </main>
     </div>
   )
 }
 
-const SyncingView = () => {
+const SyncingView = ({ message }: { message: string }) => {
   return (
     <div className="flex flex-col h-screen bg-background text-foreground">
-      <Header
-        dbConnected={true}
-        isSyncing={true}
-        currentDate={new Date()}
-        handlePreviousMonth={() => {}}
-        handleNextMonth={() => {}}
-        setIsAddEventOpen={() => {}}
-        setIsSettingsOpen={() => {}}
-      />
-      <main className="flex-1" />
+      <main className="flex-1 flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-xl font-semibold mb-2">Synchronizing Database</h2>
+          <p>{message}</p>
+        </div>
+      </main>
     </div>
   )
 }
