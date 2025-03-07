@@ -44,7 +44,7 @@ export function Header({
     <header className="sticky top-0 border-b border-border bg-background p-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Link to="/" className="flex items-center gap-2">
+          <Link to="/" className="flex items-center gap-2 hover:cursor-pointer hover:bg-muted py-2 px-4 rounded-md">
             <CalendarIcon className="size-6" />
             <p className="font-semibold text-xl">Localndr</p>
           </Link>
@@ -54,7 +54,7 @@ export function Header({
             <PopoverTrigger asChild>
               <Button
                 variant="outline"
-                className="w-full justify-start text-xl font-medium"
+                className="w-full justify-start text-xl font-medium hover:cursor-pointer"
               >
                 {currentDateRange ? `${format(currentDateRange.from!, 'PPP')} - ${format(currentDateRange.to!, 'PPP')}` : format(currentDate, 'PPP')}
               </Button>
@@ -104,6 +104,7 @@ export function Header({
             <Button
               variant="outline"
               size="icon"
+              className="hover:cursor-pointer"
             >
               <Plus className="size-4" />
             </Button>
@@ -112,6 +113,7 @@ export function Header({
             <Button
               variant="outline"
               size="icon"
+              className="hover:cursor-pointer"
             >
               <Settings className="size-4" />
             </Button>

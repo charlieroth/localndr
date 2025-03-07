@@ -33,7 +33,6 @@ export default function Home() {
   
   // Convert DBEvents to Events with proper Date objects
   const events = dbEvents ? convertDbEventsToEvents(dbEvents) : []
-  console.log('events', events)
   
   const handleUpdateEvent = (updatedEvent: Event) => {
     // Handle event updates here

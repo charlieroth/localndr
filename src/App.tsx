@@ -5,6 +5,7 @@ import Home from './pages/home'
 import { ThemeProvider } from './components/theme-provider'
 import Add from './pages/add'
 import Settings from './pages/settings'
+import EventDetail from './pages/event-detail'
 import { useDatabaseStore } from './stores/databaseStore'
 
 export default function App() {
@@ -31,6 +32,7 @@ export default function App() {
             <Route index path="/" element={<Home />} />
             <Route path="/add" element={<Add />} />
             <Route path="/settings" element={<Settings />} />
+            <Route path="/e/:eventId" element={<EventDetail />} />
           </Routes>
         </BrowserRouter>
       </PGliteProvider>

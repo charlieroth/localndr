@@ -7,13 +7,16 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Textarea } from "@/components/ui/textarea";
 import { format } from "date-fns";
 import { useForm, SubmitHandler, Controller } from "react-hook-form"
+import { useDatabaseStore } from '@/stores/databaseStore'
+import { useNavigate } from 'react-router'
+import { v4 as uuidv4 } from 'uuid'
 
 type Inputs = {
   title: string
   description: string
   date: Date
-  startTime: Date
-  endTime: Date
+  startTime: string
+  endTime: string
 }
 
 export default function Add() {
@@ -21,19 +24,89 @@ export default function Add() {
   const {
     register,
     handleSubmit,
-    control
+    control,
+    formState: { isSubmitting}
   } = useForm<Inputs>({
     defaultValues: {
       title: '',
       description: '',
       date: now,
-      startTime: new Date(now.getFullYear(), now.getMonth(), now.getDay(), now.getHours(), 0, 0),
-      endTime: new Date(now.getFullYear(), now.getMonth(), now.getDay(), now.getHours() + 1, 0, 0),
+      startTime: `${now.getHours()}:00`,
+      endTime: `${now.getHours() + 1}:00`,
     }
   })
+  const { withDatabase } = useDatabaseStore()
+  const navigate = useNavigate()
 
-  const onSubmit: SubmitHandler<Inputs> = (data) => {
-    console.log(data)
+  const onSubmit: SubmitHandler<Inputs> = async (values) => {
+    try {
+      console.log('values: ', values)
+      const [startHour, startMinutes] = values.startTime.split(":").map(Number)
+      const [endHour, endMinutes] = values.endTime.split(":").map(Number)
+      // Create start_date by combining date and startTime
+      const startDate = new Date(values.date)
+      startDate.setHours(
+        startHour,
+        startMinutes,
+        0,
+        0
+      )
+      
+      // Create end_date by combining date and endTime
+      const endDate = new Date(values.date)
+      endDate.setHours(
+        endHour,
+        endMinutes,
+        0,
+        0
+      )
+
+      console.log({
+        date: values.date,
+        title: values.title,
+        description: values.description,
+        startDate,
+        endDate
+      })
+      
+      // Generate a UUID for the new event
+      const eventId = uuidv4()
+      
+      // Insert the event into the database
+      await withDatabase(async (pg) => {
+        await pg.query(`
+          INSERT INTO event (
+            id, 
+            title, 
+            description, 
+            start_date, 
+            end_date, 
+            created, 
+            modified
+          ) VALUES (
+            $1, 
+            $2, 
+            $3, 
+            $4, 
+            $5, 
+            NOW(), 
+            NOW()
+          )
+        `, [
+          eventId,
+          values.title,
+          values.description,
+          startDate.toISOString(),
+          endDate.toISOString()
+        ])
+      })
+      
+      // Navigate back to the home page after successful submission
+      navigate('/')
+    } catch (error) {
+      console.error('Error creating event:', error)
+      // You could add error handling UI here
+    }
   }
 
   return (
@@ -44,7 +117,7 @@ export default function Add() {
       />
       <main className="flex flex-col items-center justify-center pt-10">
         <form onSubmit={handleSubmit(onSubmit)} className="w-full max-w-md">
-          <h1>Add Event</h1>
+          <h1 className="text-2xl font-bold">Add Event</h1>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
               <Label htmlFor="title">Title</Label>
@@ -116,14 +189,13 @@ export default function Add() {
               </div>
             </div>
           </div>
-          <div className="flex justify-end">
-            <Button variant="outline" type="submit">
-              Add
+          <div className="flex justify-end mt-4">
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? 'Creating...' : 'Create Event'}
             </Button>
           </div>
         </form>
       </main>
     </div>
-
   )
 }

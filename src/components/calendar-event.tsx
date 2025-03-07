@@ -1,5 +1,6 @@
 import { format } from 'date-fns'
 import { Clock } from 'lucide-react'
+import { useNavigate } from 'react-router'
 
 import {
   Card,
@@ -20,10 +21,15 @@ export function CalendarEvent({
   event,
   timeFormat,
 }: CalendarEventProps) {
+  const navigate = useNavigate()
   const now = new Date()
   const isCurrentEvent = now >= event.start_date && now <= event.end_date
 
   const timeFormatString = timeFormat === '12h' ? 'h:mm a' : 'HH:mm'
+  
+  const handleClick = () => {
+    navigate(`/e/${event.id}`)
+  }
 
   return (
     <>
@@ -31,6 +37,7 @@ export function CalendarEvent({
         className={`overflow-hidden transition-colors cursor-pointer hover:bg-accent ${
           event.end_date < now ? 'opacity-50 hover:opacity-75 bg-muted' : ''
         } ${isCurrentEvent ? 'border-2 border-primary' : ''}`}
+        onClick={handleClick}
       >
         <CardHeader>
           <CardTitle className="text-base">{event.title}</CardTitle>

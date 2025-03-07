@@ -89,7 +89,7 @@ async function startSyncToDatabase(pg: PGliteWithExtensions) {
 const syncMutex = new Mutex()
 
 async function startWritePath(pg: PGliteWithExtensions) {
-  pg.live.query<{
+  await pg.live.query<{
     event_count: number
   }>(
     `SELECT * FROM (SELECT count(id) as event_count FROM event WHERE synced = false)`,
