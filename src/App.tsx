@@ -42,26 +42,30 @@ export default function App() {
 
 const NoPGliteView = ({ message }: { message: string }) => {
   return (
-    <div className="flex flex-col h-screen bg-background text-foreground">
-      <main className="flex-1 flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-xl font-semibold mb-2">Database Not Available</h2>
-          <p>{message}</p>
-        </div>
-      </main>
-    </div>
+    <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+      <div className="flex flex-col h-screen bg-background text-foreground">
+        <main className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <h2 className="text-xl font-semibold mb-2">Database Not Available</h2>
+            <p>{message}</p>
+          </div>
+        </main>
+      </div>
+    </ThemeProvider>
   )
 }
 
 const SyncingView = ({ message }: { message: string }) => {
   return (
-    <div className="flex flex-col h-screen bg-background text-foreground">
-      <main className="flex-1 flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-xl font-semibold mb-2">Synchronizing Database</h2>
-          <p>{message}</p>
-        </div>
-      </main>
-    </div>
+    <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+      <div className="flex flex-col h-screen bg-background text-foreground">
+        <main className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <h2 className="text-xl font-semibold mb-2">Synchronizing Database</h2>
+            <p>{message}</p>
+          </div>
+        </main>
+      </div>
+    </ThemeProvider>
   )
 }
