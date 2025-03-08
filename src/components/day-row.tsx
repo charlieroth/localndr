@@ -7,14 +7,12 @@ import type { TimeFormat, Event } from '@/types'
 interface DayRowProps {
   day: Date
   events: Event[]
-  onUpdateEvent: (updatedEvent: Event) => void
   timeFormat: TimeFormat
 }
 
 export function DayRow({
   day,
   events,
-  onUpdateEvent,
   timeFormat,
 }: DayRowProps) {
   const isCurrentDay = isToday(day)
@@ -55,7 +53,6 @@ export function DayRow({
                   <CalendarEvent
                     key={event.id}
                     event={event}
-                    onUpdateEvent={onUpdateEvent}
                     timeFormat={timeFormat}
                   />
                 ))

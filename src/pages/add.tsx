@@ -1,15 +1,16 @@
-import { Header } from "@/components/header";
+import { toast } from "sonner";
+import { format } from "date-fns";
+import { useForm, SubmitHandler, Controller } from "react-hook-form"
+import { v4 as uuidv4 } from 'uuid'
+import { usePGlite } from "@electric-sql/pglite-react";
+import { useNavigate } from "react-router";
+import Header from "@/components/header";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Textarea } from "@/components/ui/textarea";
-import { format } from "date-fns";
-import { useForm, SubmitHandler, Controller } from "react-hook-form"
-import { useDatabaseStore } from '@/stores/databaseStore'
-import { useNavigate } from 'react-router'
-import { v4 as uuidv4 } from 'uuid'
 
 type Inputs = {
   title: string
@@ -20,11 +21,14 @@ type Inputs = {
 }
 
 export default function Add() {
+  const navigate = useNavigate()
+  const pg = usePGlite()
   const now = new Date()
   const {
     register,
     handleSubmit,
     control,
+    reset,
     formState: { isSubmitting}
   } = useForm<Inputs>({
     defaultValues: {
@@ -35,86 +39,66 @@ export default function Add() {
       endTime: `${now.getHours() + 1}:00`,
     }
   })
-  const { withDatabase } = useDatabaseStore()
-  const navigate = useNavigate()
 
   const onSubmit: SubmitHandler<Inputs> = async (values) => {
     try {
-      console.log('values: ', values)
       const [startHour, startMinutes] = values.startTime.split(":").map(Number)
       const [endHour, endMinutes] = values.endTime.split(":").map(Number)
-      // Create start_date by combining date and startTime
       const startDate = new Date(values.date)
-      startDate.setHours(
-        startHour,
-        startMinutes,
-        0,
-        0
-      )
-      
-      // Create end_date by combining date and endTime
+      startDate.setHours(startHour, startMinutes, 0, 0)
       const endDate = new Date(values.date)
-      endDate.setHours(
-        endHour,
-        endMinutes,
-        0,
-        0
-      )
-
-      console.log({
-        date: values.date,
-        title: values.title,
-        description: values.description,
-        startDate,
-        endDate
-      })
-      
-      // Generate a UUID for the new event
+      endDate.setHours(endHour, endMinutes, 0, 0)
       const eventId = uuidv4()
       
-      // Insert the event into the database
-      await withDatabase(async (pg) => {
-        await pg.query(`
-          INSERT INTO event (
-            id, 
-            title, 
-            description, 
-            start_date, 
-            end_date, 
-            created, 
-            modified
-          ) VALUES (
-            $1, 
-            $2, 
-            $3, 
-            $4, 
-            $5, 
-            NOW(), 
-            NOW()
-          )
-        `, [
-          eventId,
-          values.title,
-          values.description,
-          startDate.toISOString(),
-          endDate.toISOString()
-        ])
+      await pg.query(`
+        INSERT INTO event (
+          id, 
+          title, 
+          description, 
+          start_date, 
+          end_date, 
+          created, 
+          modified
+        ) VALUES (
+          $1, 
+          $2, 
+          $3, 
+          $4, 
+          $5, 
+          NOW(), 
+          NOW()
+        )
+      `, [
+        eventId,
+        values.title,
+        values.description,
+        startDate.toISOString(),
+        endDate.toISOString()
+      ])
+
+      toast.success("Event created", {
+        description: "Calendar event created successfully",
       })
+
+      navigate(`/?date=${format(values.date, 'yyyy-MM-dd')}`)
       
-      // Navigate back to the home page after successful submission
-      navigate('/')
-    } catch (error) {
-      console.error('Error creating event:', error)
-      // You could add error handling UI here
+      reset({
+        title: '',
+        description: '',
+        date: now,
+        startTime: `${now.getHours()}:00`,
+        endTime: `${now.getHours() + 1}:00`,
+      })
+    } catch {
+      toast.error("Error creating event", {
+        description: "Please try again",
+      })
     }
   }
 
   return (
     <div className="flex flex-col h-screen bg-background text-foreground">
-      <Header
-        dbConnected={true}
-        isSyncing={false}
-      />
+      <Header showFiltering={false} />
       <main className="flex flex-col items-center justify-center pt-10">
         <form onSubmit={handleSubmit(onSubmit)} className="w-full max-w-md">
           <h1 className="text-2xl font-bold">Add Event</h1>
@@ -143,7 +127,6 @@ export default function Add() {
                     control={control}
                     name="date"
                     render={({ field: { value, onChange} }) => {
-                      console.log(value)
                       return (
                         <>
                           <PopoverTrigger asChild>

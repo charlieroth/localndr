@@ -1,26 +1,13 @@
-import { Header } from './header'
 import { Outlet } from 'react-router'
+import { Toaster } from "@/components/ui/sonner"
 
-type LayoutProps = {
-  isSyncing: boolean
-  dbConnected?: boolean
-}
-
-export default function Layout({ dbConnected = true, isSyncing }: LayoutProps) {
+export default function Layout() {
   return (
     <div className="flex flex-col h-screen bg-background text-foreground">
-      <Header
-        dbConnected={dbConnected}
-        isSyncing={isSyncing}
-        currentDate={new Date()}
-        handlePreviousMonth={() => {}}
-        handleNextMonth={() => {}}
-        setIsAddEventOpen={() => {}}
-        setIsSettingsOpen={() => {}}
-      />
       <main className="flex-1">
         <Outlet />
       </main>
+      <Toaster />
     </div>
   )
 }

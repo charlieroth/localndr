@@ -1,71 +1,127 @@
-import { useEffect } from 'react'
-import { BrowserRouter, Route, Routes } from 'react-router'
+import { useEffect, useState } from 'react'
+import { createBrowserRouter, RouterProvider } from 'react-router'
 import { PGliteProvider } from '@electric-sql/pglite-react'
-import Home from './pages/home'
+import { PGliteWorker } from '@electric-sql/pglite/worker'
 import { ThemeProvider } from './components/theme-provider'
+import { electricSync } from '@electric-sql/pglite-sync'
+import { live, LiveNamespace } from '@electric-sql/pglite/live'
+import PGWorker from './pglite-worker.js?worker'
+import { startSync, useSyncStatus, waitForInitialSync } from './sync'
+import Layout from './components/layout'
+import {
+  getFilterStateFromSearchParams,
+  filterStateToSql,
+} from './utils/filterState'
+import { Event as EventType } from './types'
+import List from './pages/list'
 import Add from './pages/add'
 import Settings from './pages/settings'
-import EventDetail from './pages/event-detail'
-import { useDatabaseStore } from './stores/databaseStore'
+import Loading from './pages/loading'
+
+type PGliteWorkerWithLive = PGliteWorker & { live: LiveNamespace }
+
+async function createPGlite() {
+  return PGliteWorker.create(new PGWorker(), {
+    extensions: {
+      live,
+      sync: electricSync()
+    }
+  })
+}
+
+const pgPromise = createPGlite()
+
+let syncStarted = false
+pgPromise.then((pg) => {
+  console.log('PGlite worker started')
+  pg.onLeaderChange(() => {
+    console.log('Leader changed')
+    if (pg.isLeader && !syncStarted) {
+      syncStarted = true
+      startSync(pg)
+    }
+  })
+})
+
+async function eventListLoader({ request }: { request: Request }) {
+  await waitForInitialSync()
+  const pg = await pgPromise
+  const url = new URL(request.url)
+  const filterState = getFilterStateFromSearchParams(url.searchParams)
+  const { sql, sqlParams } = filterStateToSql(filterState)
+  const liveEvents = await pg.live.query<EventType>({
+    query: sql,
+    params: sqlParams,
+    signal: request.signal,
+    offset: 0,
+    limit: 100
+  })
+  return { liveEvents, filterState }
+}
+
+// async function eventLoader({
+//   params,
+//   request
+// }: {
+//   params: Params,
+//   request: Request
+// }) {
+//   const pg = await pgPromise
+//   const liveEvent = await pg.live.query<EventType>({
+//     query: `SELECT * FROM event WHERE id = $1`,
+//     params: [params.id],
+//     signal: request.signal
+//   })
+//   return { liveEvent }
+// }
+
+const router = createBrowserRouter([
+  {
+    path: '/',
+    element: <Layout />,
+    children: [
+      {
+        index: true,
+        element: <List />,
+        loader: eventListLoader
+      },
+      {
+        path: 'add',
+        element: <Add />
+      },
+      {
+        path: 'settings',
+        element: <Settings />
+      }
+    ]
+  }
+])
 
 export default function App() {
-  const { pg, syncStatus, syncMessage, initialize } = useDatabaseStore()
-  
-  // Initialize the database on app start
+  const [pgForProivder, setPgForProvider] = useState<PGliteWorkerWithLive | null>(null)
+  const [syncStatus, syncMessage] = useSyncStatus()
+
   useEffect(() => {
-    initialize()
-  }, [initialize])
+    pgPromise.then(setPgForProvider)
+  }, [])
 
-  if (!pg) {
-    return <NoPGliteView message="Initializing PGlite..." />
+  if (!pgForProivder) {
+    return (
+      <Loading message="Starting PGlite..." />
+    )
   }
 
-  if (syncStatus !== 'ready') {
-    return <SyncingView message={syncMessage} />
+  if (syncStatus === 'initial-sync') {
+    return (
+      <Loading message={syncMessage} />
+    )
   }
 
   return (
     <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-      <PGliteProvider db={pg}>
-        <BrowserRouter>
-          <Routes>
-            <Route index path="/" element={<Home />} />
-            <Route path="/add" element={<Add />} />
-            <Route path="/settings" element={<Settings />} />
-            <Route path="/e/:eventId" element={<EventDetail />} />
-          </Routes>
-        </BrowserRouter>
+      <PGliteProvider db={pgForProivder}>
+        <RouterProvider router={router} />
       </PGliteProvider>
-    </ThemeProvider>
-  )
-}
-
-const NoPGliteView = ({ message }: { message: string }) => {
-  return (
-    <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-      <div className="flex flex-col h-screen bg-background text-foreground">
-        <main className="flex-1 flex items-center justify-center">
-          <div className="text-center">
-            <h2 className="text-xl font-semibold mb-2">Database Not Available</h2>
-            <p>{message}</p>
-          </div>
-        </main>
-      </div>
-    </ThemeProvider>
-  )
-}
-
-const SyncingView = ({ message }: { message: string }) => {
-  return (
-    <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-      <div className="flex flex-col h-screen bg-background text-foreground">
-        <main className="flex-1 flex items-center justify-center">
-          <div className="text-center">
-            <h2 className="text-xl font-semibold mb-2">Synchronizing Database</h2>
-            <p>{message}</p>
-          </div>
-        </main>
-      </div>
     </ThemeProvider>
   )
 }

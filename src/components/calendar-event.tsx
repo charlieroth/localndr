@@ -13,7 +13,6 @@ import type { TimeFormat, Event } from '@/types'
 
 interface CalendarEventProps {
   event: Event
-  onUpdateEvent: (updatedEvent: Event) => void
   timeFormat: TimeFormat
 }
 

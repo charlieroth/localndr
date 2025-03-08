@@ -1,4 +1,4 @@
-import { Header } from "@/components/header";
+import Header from "@/components/header";
 import { RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { RadioGroup } from "@/components/ui/radio-group";
@@ -10,10 +10,7 @@ export default function Settings() {
 
   return (
     <div className="flex flex-col h-screen bg-background text-foreground">
-      <Header
-        dbConnected={true}
-        isSyncing={false}
-      />
+      <Header showFiltering={false} />
       <main className="flex-1">
         <div className="flex flex-col items-center justify-center pt-10">
           <div className="flex flex-col gap-4">
