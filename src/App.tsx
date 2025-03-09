@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { createBrowserRouter, RouterProvider } from 'react-router'
+import { createBrowserRouter, Params, RouterProvider } from 'react-router'
 import { PGliteProvider } from '@electric-sql/pglite-react'
 import { PGliteWorker } from '@electric-sql/pglite/worker'
 import { ThemeProvider } from './components/theme-provider'
@@ -17,6 +17,7 @@ import List from './pages/list'
 import Add from './pages/add'
 import Settings from './pages/settings'
 import Loading from './pages/loading'
+import Event from './pages/event'
 
 type PGliteWorkerWithLive = PGliteWorker & { live: LiveNamespace }
 
@@ -59,21 +60,33 @@ async function eventListLoader({ request }: { request: Request }) {
   return { liveEvents, filterState }
 }
 
-// async function eventLoader({
-//   params,
-//   request
-// }: {
-//   params: Params,
-//   request: Request
-// }) {
-//   const pg = await pgPromise
-//   const liveEvent = await pg.live.query<EventType>({
-//     query: `SELECT * FROM event WHERE id = $1`,
-//     params: [params.id],
-//     signal: request.signal
-//   })
-//   return { liveEvent }
-// }
+async function eventLoader({
+  params,
+  request
+}: {
+  params: Params,
+  request: Request
+}) {
+  const pg = await pgPromise
+  const liveEvent = await pg.live.query<EventType>({
+    query: `
+      SELECT
+        id,
+        title,
+        description,
+        start_date,
+        end_date,
+        created,
+        modified,
+        deleted,
+        synced
+      FROM event WHERE id = $1;
+    `,
+    params: [params.id],
+    signal: request.signal
+  })
+  return { liveEvent }
+}
 
 const router = createBrowserRouter([
   {
@@ -88,6 +101,11 @@ const router = createBrowserRouter([
       {
         path: 'add',
         element: <Add />
+      },
+      {
+        path: 'e/:id',
+        element: <Event />,
+        loader: eventLoader
       },
       {
         path: 'settings',

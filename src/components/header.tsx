@@ -1,6 +1,5 @@
 import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, DatabaseZap, Plus, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ThemeToggle } from "@/components/theme-toggle";
 import { addDays, addMonths, format, getWeek, startOfMonth, startOfWeek, subDays, subMonths } from "date-fns";
 import { Calendar } from '@/components/ui/calendar'
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -215,7 +214,6 @@ export default function Header({ filterState, showFiltering = true }: HeaderProp
               <Settings className="size-4" />
             </Button>
           </Link>
-          <ThemeToggle />
         </div>
       </div>
     </header>

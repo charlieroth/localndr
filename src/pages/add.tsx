@@ -97,88 +97,90 @@ export default function Add() {
   }
 
   return (
-    <div className="flex flex-col h-screen bg-background text-foreground">
+    <>
       <Header showFiltering={false} />
-      <main className="flex flex-col items-center justify-center pt-10">
-        <form onSubmit={handleSubmit(onSubmit)} className="w-full max-w-md">
-          <h1 className="text-2xl font-bold">Add Event</h1>
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <Label htmlFor="title">Title</Label>
-              <Input
-                id="title"
-                placeholder="Event title"
-                {...register('title', { required: true })}
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="description">Description</Label>
-              <Textarea
-                id="description"
-                placeholder="Event description"
-                {...register('description', { required: true })}
-              />
-            </div>
-            <div className="grid gap-4">
+      <main className="flex-1 ">
+        <div className="flex flex-col items-center justify-center pt-10">
+          <form onSubmit={handleSubmit(onSubmit)} className="w-full max-w-md">
+            <h1 className="text-2xl font-bold">Add Event</h1>
+            <div className="grid gap-4 py-4">
               <div className="grid gap-2">
-                <Label>Date</Label>
-                <Popover>
-                  <Controller
-                    control={control}
-                    name="date"
-                    render={({ field: { value, onChange} }) => {
-                      return (
-                        <>
-                          <PopoverTrigger asChild>
-                            <Button
-                              variant="outline"
-                              className="w-full justify-start text-left font-normal"
-                            >
-                              {format(value, 'PPP')}
-                            </Button>
-                          </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="center">
-                          <Calendar
-                            className="rounded-md border"
-                            mode="single"
-                            selected={value}
-                            onSelect={(date) => onChange(date)}
-                            initialFocus
-                          />
-                          </PopoverContent>
-                        </>
-                      )
-                    }}
-                  />
-                </Popover>
+                <Label htmlFor="title">Title</Label>
+                <Input
+                  id="title"
+                  placeholder="Event title"
+                  {...register('title', { required: true })}
+                />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="description">Description</Label>
+                <Textarea
+                  id="description"
+                  placeholder="Event description"
+                  {...register('description', { required: true })}
+                />
+              </div>
+              <div className="grid gap-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="startTime">Start Time</Label>
-                  <Input
-                    id="startTime"
-                    type="time"
-                    {...register('startTime', { required: true })}
-                  />
+                  <Label>Date</Label>
+                  <Popover>
+                    <Controller
+                      control={control}
+                      name="date"
+                      render={({ field: { value, onChange} }) => {
+                        return (
+                          <>
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant="outline"
+                                className="w-full justify-start text-left font-normal"
+                              >
+                                {format(value, 'PPP')}
+                              </Button>
+                            </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="center">
+                            <Calendar
+                              className="rounded-md border"
+                              mode="single"
+                              selected={value}
+                              onSelect={(date) => onChange(date)}
+                              initialFocus
+                            />
+                            </PopoverContent>
+                          </>
+                        )
+                      }}
+                    />
+                  </Popover>
                 </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="endTime">End Time</Label>
-                  <Input
-                    id="endTime"
-                    type="time"
-                    {...register('endTime', { required: true })}
-                  />
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="startTime">Start Time</Label>
+                    <Input
+                      id="startTime"
+                      type="time"
+                      {...register('startTime', { required: true })}
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="endTime">End Time</Label>
+                    <Input
+                      id="endTime"
+                      type="time"
+                      {...register('endTime', { required: true })}
+                    />
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-          <div className="flex justify-end mt-4">
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? 'Creating...' : 'Create Event'}
-            </Button>
-          </div>
-        </form>
+            <div className="flex justify-end mt-4">
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? 'Creating...' : 'Create Event'}
+              </Button>
+            </div>
+          </form>
+        </div>
       </main>
-    </div>
+    </>
   )
 }

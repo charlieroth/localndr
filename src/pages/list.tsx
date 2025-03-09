@@ -38,12 +38,16 @@ export default function List() {
   }, [filterState])
 
   return (
-    <div className="flex flex-col flex-grow">
+    <>
       <Header filterState={filterState} />
-      <EventList 
-        dates={dates}
-        events={events} 
-      />
-    </div>
+      <main className="flex-1">
+        <div className="flex flex-col gap-6 p-4 md:px-12 lg:px-24 md:max-w-4xl lg:max-w-6xl md:mx-auto">
+          <EventList 
+            dates={dates}
+            events={events} 
+          />
+        </div>
+      </main>
+    </>
   )
 }
