@@ -11,3 +11,10 @@ export type Event = {
   deleted: boolean
   synced: boolean
 }
+
+export type CalendarView = 'day' | 'week' | 'month'
+
+export type CalendarStoreFilter = {
+  date: string
+  view: CalendarView
+}

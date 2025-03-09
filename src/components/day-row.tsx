@@ -1,6 +1,4 @@
 import { format, isToday } from 'date-fns'
-
-import { Separator } from '@/components/ui/separator'
 import { CalendarEvent } from '@/components/calendar-event'
 import type { TimeFormat, Event } from '@/types'
 
@@ -18,7 +16,7 @@ export function DayRow({
   const isCurrentDay = isToday(day)
 
   return (
-    <div>
+    <>
       {/* Day row */}
       <div className="flex gap-4 items-start">
         {/* Date circle */}
@@ -64,8 +62,6 @@ export function DayRow({
           </div>
         </div>
       </div>
-
-      <Separator className="mt-4" />
-    </div>
+    </>
   )
 }

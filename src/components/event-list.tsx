@@ -3,6 +3,7 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { isSameDay } from 'date-fns'
 import { DayRow } from './day-row'
 import useCalendarStore from '@/stores/calendarStore'
+import { Separator } from './ui/separator'
 
 type EventListProps = {
   dates: Date[]
@@ -20,13 +21,16 @@ export default function EventList({ dates, events }: EventListProps) {
           const dayEvents = events.filter((event) => isSameDay(event.start_date, day))
           const isToday = isSameDay(day, today)
           return (
-            <div key={`day-events-${day.toString()}`} data-is-today={isToday}>
-              <DayRow
-                day={day}
-                events={dayEvents}
-                timeFormat={timeFormat}
-              />
-            </div>
+            <>
+              <div key={`day-events-${day.toString()}`} data-is-today={isToday}>
+                <DayRow
+                  day={day}
+                  events={dayEvents}
+                  timeFormat={timeFormat}
+                />
+              </div>
+              {dates.length > 1 && <Separator className="mt-4" />}
+            </>
           )
         })}
       </div>
